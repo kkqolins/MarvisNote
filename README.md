@@ -15,7 +15,6 @@
 
 ### 2. 所见即所得，纸张也随行
 编辑与导出保持一致：Word、PDF 导出时会完整保留当前纸张底色、横线与文字样式，写出来什么样，导出来就是什么样。
-<img width="861" height="775" alt="image" src="https://github.com/user-attachments/assets/3b694f4c-819a-4a85-8bc5-94e5c92b8b5b" />
 
 ### 3. 多笔记本多笔记页，目录自由折叠
 支持多本笔记本，每本内可建多页笔记；侧边目录可折叠收纳，自动保存、历史保留，笔记再多也不怕乱。
@@ -78,11 +77,13 @@
 ---
 
 ## 使用说明
-
+由Electron v41.7.1框架	开发
 1. 解压绿色版压缩包，双击 `Marvis星露谷笔记本.exe` 即可启动，无需安装。
 2. 新建笔记本 → 新建笔记页 → 选择喜欢的纸张样式，直接开写。
 3. 需要分享或备份时，使用右上角导出：Word / PDF / .mbook。
 4. 换电脑时，把整个文件夹拷走，或导入 .mbook 备份即可无缝迁移。
+<img width="1149" height="1401" alt="image" src="https://github.com/user-attachments/assets/9ab41baa-bc18-43fc-a3c2-a3d22d8638d9" />
+
 
 ---
 
