@@ -1,6 +1,7 @@
 # Marvis 星露谷笔记本
 
 > 一本会呼吸的像素风笔记本：把星露谷的松弛感，装进你的每一页笔记。
+<img width="2471" height="1672" alt="image" src="https://github.com/user-attachments/assets/80ad65d0-367a-4f2c-b5d8-e0367187c86d" />
 
 **一句话定位**：绿色免安装、离线即用的桌面笔记工具，以星露谷物语皮面笔记本为设计蓝本，让写笔记这件事变得轻松、好看、像在游戏里一样顺手。
 
@@ -10,12 +11,15 @@
 
 ### 1. 星露谷风格，一眼入戏
 皮面笔记本外观 + 白纸 / 牛皮纸 / 古纸 / 羊皮纸 4 种纸张样式（带横线纹理），配合星露谷像素字体（FusionPixel）与经典小黄鸡图标，打开即进入游戏般的书写氛围。
+<img width="1969" height="795" alt="image" src="https://github.com/user-attachments/assets/75091049-8446-416f-9ab8-41acc8adac35" />
 
 ### 2. 所见即所得，纸张也随行
 编辑与导出保持一致：Word、PDF 导出时会完整保留当前纸张底色、横线与文字样式，写出来什么样，导出来就是什么样。
+<img width="861" height="775" alt="image" src="https://github.com/user-attachments/assets/3b694f4c-819a-4a85-8bc5-94e5c92b8b5b" />
 
 ### 3. 多笔记本多笔记页，目录自由折叠
 支持多本笔记本，每本内可建多页笔记；侧边目录可折叠收纳，自动保存、历史保留，笔记再多也不怕乱。
+<img width="2461" height="1031" alt="image" src="https://github.com/user-attachments/assets/c5608a17-984c-483e-a6cd-20d943bb8987" />
 
 ### 4. 富文本编辑，够用且顺手
 加粗 / 斜体 / 下划线 / 删除线、对齐、列表、插入图片、Ctrl+V 直接粘贴截图，再配上 emoji 贴纸面板与 19 款目录图标，表达方式足够丰富。
