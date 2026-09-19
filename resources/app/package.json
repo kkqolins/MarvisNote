@@ -1,0 +1,8 @@
+{
+  "name": "MarvisNote",
+  "version": "8.0.0",
+  "description": "Marvis 星露谷笔记本 - 可持久化的富文本笔记工具",
+  "main": "main.js",
+  "author": "Marvis",
+  "license": "MIT"
+}

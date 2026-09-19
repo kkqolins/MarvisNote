@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Marvis 笔记本 · 星露谷</title>
+<style>
+@font-face{
+  font-family:'FusionPixel';
+  src:url('assets/fonts/fusion-pixel-12px-proportional-zh_hans.ttf.woff2') format('woff2');
+  font-weight:normal; font-style:normal; font-display:swap;
+}
+:root{
+  --wood:#7a4f2a; --wood2:#4a2c14; --wood3:#9c6b3a;
+  --cream:#f7e7c3; --paper:#fbf1d9; --paper2:#f3e4c4;
+  --line:#dcc9a0; --ink:#4a3a28; --ink2:#7a6a52;
+  --gold:#e8b84b; --gold2:#f0c869; --acc:#c98a2e;
+  --leaf:#7a9440; --heart:#c84c3c;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{height:100%;}
+body{
+  font-family:"楷体","KaiTi","Microsoft YaHei",serif;
+  background:#4a2c14;
+  color:var(--ink); display:flex; align-items:center; justify-content:center;
+  padding:0; overflow:hidden;
+}
+.notebook{
+  width:100%; height:100%;
+  background:linear-gradient(145deg, var(--wood3), var(--wood) 45%, var(--wood2));
+  border-radius:16px; box-shadow:inset 0 1px 0 rgba(255,255,255,.15);
+  display:flex; flex-direction:column; position:relative; padding:12px;
+  border:3px solid var(--wood2); overflow:hidden;
+}
+.notebook::before{content:""; position:absolute; inset:0; border-radius:16px; pointer-events:none;
+  background:repeating-linear-gradient(115deg, rgba(0,0,0,.06) 0 2px, transparent 2px 7px); opacity:.45;}
+.notebook::after{content:""; position:absolute; inset:5px; border-radius:13px; pointer-events:none;
+  border:1px solid rgba(232,184,75,.35);}
+.header{position:relative; display:flex; align-items:center; gap:8px;
+  padding:6px 8px 10px; border-bottom:2px solid rgba(0,0,0,.3);
+  background:linear-gradient(180deg, rgba(0,0,0,.2), transparent); border-radius:10px 10px 0 0;
+  -webkit-app-region:drag; user-select:none;}
+.header .hbtn, .header .win-controls, .header .brand small, .header .bookname{-webkit-app-region:no-drag;}
+.brand{font-size:18px; color:var(--gold2); letter-spacing:2px; font-weight:700; text-shadow:0 1px 2px rgba(0,0,0,.55); white-space:nowrap; cursor:pointer; -webkit-app-region:no-drag; transition:opacity .15s;}
+.brand:hover{opacity:.82;}
+.brand .star{color:var(--gold); font-size:15px; text-shadow:0 0 6px rgba(232,184,75,.8);}
+.brand small{font-size:11px; color:#d9c9a0; letter-spacing:1px; margin-left:6px;}
+.hbtn{border:1px solid rgba(240,200,105,.5); background:rgba(0,0,0,.2); color:#f6e8c4;
+  border-radius:8px; padding:5px 11px; font-size:13px; cursor:pointer;
+  font-family:"Microsoft YaHei"; transition:all .15s; box-shadow:inset 0 1px 0 rgba(255,255,255,.08); white-space:nowrap;}
+.hbtn:hover{background:rgba(232,184,75,.22); border-color:var(--gold2); color:#fff3d0;}
+.hbtn.primary{background:linear-gradient(180deg, var(--gold2), var(--acc)); color:#33240f; font-weight:700; border:none;}
+.hbtn.primary:hover{filter:brightness(1.08);}
+.hbtn.tiny{padding:5px 8px; font-size:12px;}
+/* 一体式窗口控制（最小化+关闭） */
+.win-controls{display:flex; align-items:center; border:1px solid rgba(240,200,105,.4);
+  border-radius:9px; overflow:hidden; background:rgba(0,0,0,.18); box-shadow:inset 0 1px 0 rgba(255,255,255,.07);}
+.wbtn{width:34px; height:26px; border:none; background:#4a2c14; color:#f0e2c0;
+  font-size:13px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center;
+  font-family:"Microsoft YaHei"; transition:all .12s; line-height:1;}
+.wbtn + .wbtn{border-left:1px solid rgba(240,200,105,.25);}
+.wbtn:hover{background:rgba(232,184,75,.3); color:#fff3d0;}
+.wbtn.wclose:hover{background:var(--heart); color:#fff;}
+/* emoji 面板（星露谷素材贴纸） */
+.emoji-panel{position:absolute; right:8px; top:44px; width:320px; max-height:230px; overflow-y:auto;
+  background:linear-gradient(165deg, #f8ecd2, #efe0bd); border:2px solid var(--wood);
+  border-radius:12px; box-shadow:0 14px 40px rgba(0,0,0,.45); padding:10px; z-index:60; display:none;}
+.emoji-panel .ep-title{font-size:12px; color:var(--wood2); letter-spacing:2px; margin-bottom:8px; font-weight:700; text-align:center;}
+.icon-panel{position:fixed; left:248px; top:58px; width:262px; max-height:310px; overflow-y:auto;
+  background:linear-gradient(165deg, #f8ecd2, #efe0bd); border:2px solid var(--wood);
+  border-radius:12px; box-shadow:0 14px 40px rgba(0,0,0,.45); padding:10px; z-index:70; display:none;}
+.icon-panel .ep-title{font-size:12px; color:var(--wood2); letter-spacing:2px; margin-bottom:8px; font-weight:700; text-align:center;}
+.icon-grid{display:grid; grid-template-columns:repeat(5, 1fr); gap:6px;}
+.icon-cell{background:#fffdf4; border:1px solid var(--line); border-radius:8px; padding:3px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; transition:all .12s;}
+.icon-cell:hover{background:rgba(232,184,75,.25); border-color:var(--acc); transform:scale(1.06);}
+.icon-cell img{width:34px; height:34px; object-fit:contain; display:block;}
+.icon-cell.rnd-cell{font-size:22px; color:var(--acc); background:rgba(255,253,244,.55); border:1.5px dashed rgba(201,138,46,.55);}
+.emoji-grid{display:grid; grid-template-columns:repeat(5, 1fr); gap:7px;}
+.emoji-cell{background:#fffdf4; border:1px solid var(--line); border-radius:8px; padding:4px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; transition:all .12s;}
+.emoji-cell:hover{background:rgba(232,184,75,.25); border-color:var(--acc); transform:scale(1.05);}
+.emoji-cell img{width:38px; height:38px; object-fit:cover; border-radius:5px; display:block;}
+.emoji-cell{position:relative;}
+.ec-del{position:absolute; top:-7px; right:-7px; width:18px; height:18px; line-height:17px; text-align:center;
+  border-radius:50%; background:rgba(169,68,66,.9); color:#fff; font-size:12px; font-weight:700; cursor:pointer;
+  display:none; z-index:6; box-shadow:0 1px 3px rgba(0,0,0,.3);}
+.emoji-cell:hover .ec-del{display:block;}
+.ec-del:hover{background:rgba(169,68,66,1); transform:scale(1.1);}
+.emoji-cell.add-emoji-cell{display:flex; align-items:center; justify-content:center; background:rgba(255,253,244,.5); border:1.5px dashed rgba(201,138,46,.55); color:var(--acc); font-size:24px; font-weight:700; line-height:1;}
+.emoji-cell.add-emoji-cell:hover{background:rgba(232,184,75,.3); border-color:var(--acc); color:#7a4d12;}
+/* 纸张选择面板 */
+.paper-panel{position:absolute; right:8px; top:44px; width:236px; background:linear-gradient(165deg, #f8ecd2, #efe0bd);
+  border:2px solid var(--wood); border-radius:12px; box-shadow:0 14px 40px rgba(0,0,0,.45); padding:10px; z-index:60; display:none;}
+.paper-cell{display:flex; align-items:center; gap:10px; padding:8px 10px; cursor:pointer; border-radius:8px; transition:background .12s;}
+.paper-cell:hover{background:rgba(232,184,75,.25);}
+.paper-cell .pname{font-size:13px; color:var(--ink);}
+.paper-cell .pdesc{font-size:11px; color:var(--ink2);}
+.paper-swatch{width:40px; height:28px; border-radius:4px; border:1px solid rgba(0,0,0,.25); flex:none;
+  box-shadow:inset 0 0 6px rgba(0,0,0,.14); position:relative; overflow:hidden;}
+.paper-swatch::after{content:""; position:absolute; left:6px; right:0; top:6px; bottom:0;
+  background:repeating-linear-gradient(180deg, transparent 0 6px, rgba(0,0,0,.10) 6px 7px);}
+.paper-swatch.sw-plain{background:#fbf1d9;}
+.paper-swatch.sw-kraft{background:#cda060;}
+.paper-swatch.sw-kraft::after{background:repeating-linear-gradient(180deg, transparent 0 6px, rgba(90,55,20,.30) 6px 7px);}
+.paper-swatch.sw-ancient{background:#d3bf95;}
+.paper-swatch.sw-ancient::after{background:repeating-linear-gradient(180deg, transparent 0 6px, rgba(118,92,56,.15) 6px 7px);}
+.paper-swatch.sw-parchment{background:#e9d5ae;}
+.paper-swatch.sw-parchment::after{background:repeating-linear-gradient(180deg, transparent 0 6px, rgba(150,115,70,.22) 6px 7px);}
+.paper-swatch.sw-none::after{display:none;}
+.book-dot{width:8px; height:8px; border-radius:50%; flex:none; border:1px solid rgba(0,0,0,.18);}
+.page-inner img.emoji-inline{width:26px; height:26px; object-fit:cover; display:inline-block;
+  vertical-align:middle; margin:0 2px; border-radius:4px; box-shadow:none; cursor:default;}
+.bookname{flex:1; color:#efe2c0; font-size:15px; font-weight:700; letter-spacing:1px; padding-left:6px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;}
+.inside{position:relative; flex:1; display:flex; gap:0; min-height:0; margin-top:12px;
+  background:var(--paper); border-radius:4px 14px 14px 4px;
+  box-shadow:inset 0 0 30px rgba(120,90,50,.18), 0 6px 24px rgba(0,0,0,.35); overflow:hidden;}
+.inside::before{content:""; position:absolute; left:236px; top:0; bottom:0; width:2px; z-index:2;
+  background:linear-gradient(180deg, transparent, rgba(140,110,60,.5) 8%, rgba(140,110,60,.5) 92%, transparent);
+  transition:left .2s;}
+.inside.folded::before{left:0; opacity:0;}
+.side{width:236px; background:linear-gradient(180deg, var(--paper2), var(--paper));
+  border-right:1px solid var(--line); padding:14px 12px 12px; display:flex; flex-direction:column;
+  position:relative; z-index:1; transition:width .2s, padding .2s; overflow:hidden; min-width:0;}
+.side.folded{width:0; padding-left:0; padding-right:0; border-right:none;}
+.side-title{display:flex; align-items:center; justify-content:space-between; font-size:14px; color:var(--wood);
+  letter-spacing:3px; margin-bottom:10px; padding-bottom:8px; border-bottom:1px dashed var(--line); font-weight:700; white-space:nowrap;}
+.side-title .leaf{color:var(--leaf); font-size:13px;}
+.side-fold-btn{border:1px solid var(--line); background:rgba(255,255,255,.4); color:var(--wood);
+  border-radius:6px; padding:2px 7px; font-size:11px; cursor:pointer; font-family:"Microsoft YaHei";}
+.side-fold-btn:hover{background:rgba(201,138,46,.18);}
+.book-list{flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:4px; min-height:0;}
+.book-list::-webkit-scrollbar{width:10px;}
+.book-list::-webkit-scrollbar-track{background:rgba(120,90,50,.10); border-radius:5px;}
+.book-list::-webkit-scrollbar-thumb{background:rgba(122,79,42,.55); border-radius:5px; border:2px solid rgba(255,255,255,.35);}
+.book-list::-webkit-scrollbar-thumb:hover{background:rgba(122,79,42,.8);}
+.book-item{border-radius:6px; overflow:hidden; flex:none;}
+.book-head{display:flex; align-items:center; gap:6px; padding:8px 10px; cursor:pointer; border-radius:6px;
+  background:rgba(0,0,0,.04); color:var(--ink); transition:all .15s; white-space:nowrap;}
+.book-head:hover{background:rgba(201,138,46,.14);}
+.book-head .del{font-size:12px; color:rgba(0,0,0,.28); opacity:0; padding:0 1px;}
+.book-head:hover .del{opacity:1;}
+.book-head .del:hover{color:rgba(169,68,66,.85);}
+#nameTip{position:fixed; display:none; max-width:340px; padding:6px 10px; background:rgba(60,38,20,.94); color:#f5e6c8; font-size:12px; line-height:1.5; border-radius:6px; pointer-events:none; z-index:9999; box-shadow:0 4px 12px rgba(0,0,0,.35); word-break:break-all;}
+.book-head.active{background:linear-gradient(90deg, rgba(201,138,46,.26), rgba(201,138,46,.08)); color:var(--wood2); font-weight:700;}
+.book-arrow{font-size:11px; color:var(--acc); width:12px; flex:none;}
+.book-name{flex:1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;}
+.book-star{color:var(--gold); font-size:12px; flex:none;}
+.book-icon{width:20px; height:20px; flex:none; cursor:pointer; object-fit:contain; border:none;
+  background:transparent; filter:drop-shadow(0 1px 1px rgba(0,0,0,.25)); transition:transform .15s, filter .15s;}
+.book-icon:hover{transform:scale(1.18); filter:drop-shadow(0 2px 3px rgba(0,0,0,.35));}
+.book-pages{display:flex; flex-direction:column; gap:3px; padding:4px 0 4px 16px;}
+.book-pages.collapsed{display:none;}
+.pitem{position:relative; padding:7px 10px 7px 18px; border-radius:5px 4px 4px 5px;
+  background:rgba(0,0,0,.025); color:var(--ink); cursor:pointer; font-size:14px;
+  border-left:3px solid transparent; display:flex; align-items:center; gap:6px;
+  transition:all .15s; word-break:break-all;}
+.pitem::before{content:""; position:absolute; left:7px; top:50%; transform:translateY(-50%);
+  width:5px; height:5px; border-radius:50%; background:var(--gold); opacity:.7;
+  box-shadow:0 0 4px rgba(232,184,75,.6);}
+.pitem:hover{background:rgba(201,138,46,.12);}
+.pitem.active{background:linear-gradient(90deg, rgba(201,138,46,.24), rgba(201,138,46,.06)); border-left-color:var(--acc); font-weight:700;}
+.pitem .del{margin-left:auto; border:none; background:none; color:var(--ink2); cursor:pointer;
+  font-size:14px; opacity:0; transition:opacity .15s; padding:0 2px; font-family:"Microsoft YaHei";}
+.pitem:hover .del{opacity:1;}
+.pitem .del:hover{color:var(--heart);}
+.side-actions{display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:10px;}
+.side-actions button{height:32px; border:1px solid var(--line); background:rgba(255,255,255,.4); color:var(--ink);
+  border-radius:7px; padding:0 4px; font-size:13px; line-height:1; cursor:pointer; font-family:"Microsoft YaHei"; transition:all .12s;
+  display:flex; align-items:center; justify-content:center; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.side-actions button:hover{background:rgba(201,138,46,.16); border-color:var(--acc); color:var(--wood);}
+.page{flex:1; min-width:0; position:relative; display:flex; flex-direction:column; overflow:hidden;}
+.ribbon{display:flex; align-items:center; gap:4px; padding:4px 10px;
+  background:linear-gradient(180deg, rgba(122,79,42,.14), rgba(122,79,42,.07));
+  border-bottom:1px solid var(--line); flex-wrap:wrap; position:relative; z-index:3;}
+.rb-group{display:flex; align-items:center; gap:2px; padding:0 6px; border-right:1px solid rgba(122,79,42,.3);}
+.rb-group:last-child{border-right:none;}
+.rb-btn{min-width:26px; height:26px; border:none; background:#4a2c14; color:var(--wood);
+  border-radius:5px; cursor:pointer; font-size:13px; display:inline-flex; align-items:center; justify-content:center;
+  transition:background .12s; font-family:"Microsoft YaHei";}
+.rb-btn:hover{background:rgba(201,138,46,.22); color:var(--acc);}
+.rb-btn svg{width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
+.rb-select{height:24px; border:1px solid var(--line); border-radius:5px; background:rgba(255,255,255,.5);
+  color:var(--ink); font-size:12px; padding:0 4px; outline:none; font-family:"Microsoft YaHei";}
+.rb-select option{background:var(--paper); color:var(--ink);}
+.colorwrap{position:relative; width:24px; height:24px; border-radius:5px; border:1px solid var(--line); overflow:hidden; cursor:pointer; display:inline-flex; align-items:center; justify-content:center;}
+.colorwrap input{position:absolute; inset:-8px; opacity:0; cursor:pointer;}
+.colorchip{width:14px; height:14px; border-radius:50%; border:1px solid rgba(0,0,0,.2);}
+.fg-btn .dot-swatch{width:15px; height:15px; border-radius:50%; border:1px solid rgba(0,0,0,.28); display:block; margin:auto; box-shadow:inset 0 1px 1px rgba(255,255,255,.25);}
+.bg-btn .sq-swatch{width:15px; height:15px; border-radius:3px; border:1px solid rgba(0,0,0,.22); display:block; margin:auto; box-shadow:inset 0 1px 1px rgba(255,255,255,.35);}
+/* 常用色面板（工具栏弹出） */
+.color-panel{position:fixed; z-index:9990; min-width:150px; padding:10px; background:linear-gradient(180deg,#5a3418,#4a2c14);
+  border:1px solid rgba(240,200,105,.45); border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,.45);}
+.cp-title{color:var(--gold2); font-size:13px; font-weight:700; text-align:center; margin-bottom:8px; letter-spacing:1px;}
+.cp-grid{display:flex; flex-wrap:wrap; gap:5px; width:150px;}
+.cp-swatch{width:18px; height:18px; cursor:pointer; border:1px solid rgba(0,0,0,.3); transition:transform .12s;}
+.cp-swatch:hover{transform:scale(1.25); box-shadow:0 0 0 2px var(--gold);}
+.cp-swatch.fg{border-radius:50%;}
+.cp-swatch.bg{border-radius:4px;}
+/* 右键悬浮菜单 */
+.ctx-menu{position:fixed; z-index:9999; min-width:210px; padding:10px 12px; background:linear-gradient(180deg,#5a3418,#4a2c14);
+  border:1px solid rgba(240,200,105,.5); border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,.5); user-select:none;}
+.cm-title{color:var(--gold2); font-size:13px; font-weight:700; text-align:center; margin-bottom:8px; letter-spacing:1px; border-bottom:1px solid rgba(240,200,105,.25); padding-bottom:6px;}
+.cm-sec{margin-bottom:8px;}
+.cm-label{color:#d9c9a0; font-size:11px; margin-bottom:4px; letter-spacing:.5px;}
+.cm-sizes{display:flex; gap:4px; flex-wrap:wrap;}
+.cm-size{min-width:32px; height:24px; padding:0 6px; border:1px solid rgba(240,200,105,.3); background:rgba(0,0,0,.18); color:#f6e8c4;
+  border-radius:5px; font-size:12px; cursor:pointer; line-height:22px; text-align:center;}
+.cm-size:hover{background:rgba(232,184,75,.25); border-color:var(--gold2);}
+.cm-fonts{display:flex; gap:4px; flex-wrap:wrap;}
+.cm-font{height:24px; padding:0 8px; border:1px solid rgba(240,200,105,.3); background:rgba(0,0,0,.18); color:#f6e8c4;
+  border-radius:5px; font-size:12px; cursor:pointer; line-height:22px;}
+.cm-font:hover{background:rgba(232,184,75,.25); border-color:var(--gold2);}
+.cm-colors{display:flex; gap:5px; flex-wrap:wrap;}
+.cm-swatch{width:18px; height:18px; cursor:pointer; border:1px solid rgba(0,0,0,.3); transition:transform .12s;}
+.cm-swatch:hover{transform:scale(1.25); box-shadow:0 0 0 2px var(--gold);}
+.cm-swatch.fg{border-radius:50%;}
+.cm-swatch.bg{border-radius:4px;}
+.page-scroll{flex:1; min-height:0; position:relative; overflow-y:auto;
+  background:repeating-linear-gradient(180deg, transparent 0 31px, rgba(180,160,120,.28) 31px 32px), var(--paper);}
+.page-inner{min-height:100%; padding:26px 40px 60px; outline:none; font-size:17px; line-height:32px; color:var(--ink);}
+.page-inner img{max-width:100%; border-radius:4px; box-shadow:0 2px 10px rgba(0,0,0,.22);
+  margin:8px 0; cursor:move; display:inline-block;}
+.page-inner img.sel{outline:2px solid var(--acc); outline-offset:2px;}
+.page-inner:empty::before{content:"新的一天，写下你的农场与生活…（Ctrl+V 可直接粘贴截图）"; color:#b7a987;}
+.page-inner font[size="1"]{font-size:11px;} .page-inner font[size="2"]{font-size:13px;}
+.page-inner font[size="3"]{font-size:15px;} .page-inner font[size="4"]{font-size:17px;}
+.page-inner font[size="5"]{font-size:20px;} .page-inner font[size="6"]{font-size:24px;} .page-inner font[size="7"]{font-size:30px;}
+/* ---- 纸张类型：牛皮纸 / 古书籍 / 羊皮纸（按笔记本切换，作用于编辑区与书页底色） ---- */
+.inside.paper-kraft{background:#cda060; box-shadow:inset 0 0 40px rgba(90,55,20,.32), 0 6px 24px rgba(0,0,0,.35);}
+.inside.paper-kraft .page-scroll{background:repeating-linear-gradient(180deg, transparent 0 31px, rgba(96,60,26,.30) 31px 32px), repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 2px, transparent 2px 5px), #cda060;}
+.inside.paper-kraft .page-inner{color:#33220f;}
+.inside.paper-kraft .side{background:linear-gradient(180deg, #c9965c, #cda060); border-right-color:rgba(90,55,20,.35);}
+.inside.paper-ancient{background:#d3bf95; box-shadow:inset 0 0 46px rgba(70,45,18,.30), 0 6px 24px rgba(0,0,0,.35);}
+.inside.paper-ancient .page-scroll{background:radial-gradient(ellipse at 50% 30%, rgba(255,250,235,.22), transparent 70%), radial-gradient(ellipse at center, transparent 52%, rgba(85,55,25,.18) 100%), repeating-linear-gradient(180deg, transparent 0 31px, rgba(118,92,56,.15) 31px 32px), repeating-linear-gradient(90deg, rgba(255,255,255,.03) 0 3px, transparent 3px 7px), #d3bf95;}
+.inside.paper-ancient .page-inner{color:#382a16;}
+.inside.paper-ancient .side{background:linear-gradient(180deg, #c9b489, #d3bf95); border-right-color:rgba(90,65,30,.30);}
+.inside.paper-parchment{background:#e9d5ae; box-shadow:inset 0 0 36px rgba(100,70,35,.22), 0 6px 24px rgba(0,0,0,.35);}
+.inside.paper-parchment .page-scroll{background:radial-gradient(circle at 18% 22%, rgba(120,85,40,.08) 0 2px, transparent 3px), radial-gradient(circle at 74% 60%, rgba(120,85,40,.07) 0 2px, transparent 3px), radial-gradient(circle at 40% 82%, rgba(120,85,40,.06) 0 2px, transparent 3px), repeating-linear-gradient(180deg, transparent 0 31px, rgba(150,115,70,.22) 31px 32px), #e9d5ae;}
+.inside.paper-parchment .page-inner{color:#3d2f1c;}
+.inside.paper-parchment .side{background:linear-gradient(180deg, #e0c99b, #e9d5ae); border-right-color:rgba(120,90,45,.25);}
+#resizeHandle{display:none; position:absolute; width:16px; height:16px; border-radius:50%;
+  background:linear-gradient(135deg, var(--gold2), var(--acc)); border:2px solid #fff;
+  box-shadow:0 2px 6px rgba(0,0,0,.4), 0 0 6px rgba(232,184,75,.7); cursor:nwse-resize; z-index:10;}
+.statusbar{position:relative; display:flex; justify-content:space-between; align-items:center;
+  padding:8px 14px 2px; font-size:12px; color:#dcc99a; letter-spacing:1px;}
+.statusbar .heart{color:var(--heart);} .statusbar .star{color:var(--gold2);}
+.statusbar .kbd{border:1px solid rgba(240,200,105,.4); border-radius:4px; padding:1px 6px; font-size:11px;}
+::-webkit-scrollbar{width:9px;} ::-webkit-scrollbar-thumb{background:rgba(122,79,42,.4); border-radius:5px;}
+::-webkit-scrollbar-thumb:hover{background:rgba(122,79,42,.6);}
+.modal-mask{position:fixed; inset:0; background:rgba(30,18,6,.55); display:none; align-items:center; justify-content:center; z-index:100;}
+.modal-box{width:min(420px, 88%); background:linear-gradient(160deg, #f8ecd2, #efe0bd);
+  border-radius:14px; padding:20px 22px; box-shadow:0 20px 60px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.6);
+  border:2px solid var(--wood);}
+.modal-title{font-size:16px; font-weight:700; color:var(--wood2); letter-spacing:2px; margin-bottom:14px;}
+.modal-input{width:100%; padding:9px 12px; font-size:15px; border:1px solid var(--line); border-radius:8px;
+  background:#fffdf4; color:var(--ink); outline:none; font-family:"Microsoft YaHei";}
+.modal-input:focus{border-color:var(--acc); box-shadow:0 0 0 3px rgba(201,138,46,.18);}
+.modal-actions{display:flex; justify-content:flex-end; gap:10px; margin-top:16px;}
+.modal-actions .hbtn{padding:7px 18px; font-size:14px;}
+/* 导出选项面板（Word / PDF / .mbook） */
+.export-meta{font-size:12px; color:var(--ink2); margin:0 0 12px; line-height:1.5;}
+.export-options{display:flex; flex-direction:column; gap:9px;}
+.export-options .hbtn{display:flex; align-items:center; gap:11px; padding:11px 14px; font-size:15px; text-align:left;
+  color:var(--wood2); background:rgba(255,253,244,.72); border:1px solid var(--line); border-radius:10px; cursor:pointer;
+  font-family:"Microsoft YaHei"; transition:all .13s; box-shadow:inset 0 1px 0 rgba(255,255,255,.5);}
+.export-options .hbtn:hover{background:rgba(232,184,75,.26); border-color:var(--acc); transform:translateX(2px);}
+.export-options .hbtn b{display:inline-flex; width:30px; height:30px; align-items:center; justify-content:center; flex:none;
+  background:linear-gradient(180deg,var(--gold2),var(--acc)); color:#33240f; border-radius:7px; font-size:14px; box-shadow:0 1px 3px rgba(0,0,0,.25);}
+.export-options .hbtn .ed{display:flex; flex-direction:column; gap:2px; min-width:0;}
+.export-options .hbtn .ed span{font-size:13px; font-weight:700;}
+.export-options .hbtn .ed small{font-size:11px; color:var(--ink2); font-weight:400; line-height:1.4;}
+/* ============ 星露谷像素风格（UI 覆盖层，优先级最高） ============ */
+.hbtn,.wbtn,.rb-btn,.rb-select,.side-title,.paper-cell .pname,.paper-cell .pdesc,
+.side .book-head,.side .book-item,.book-arrow,.book-star,.side-title .leaf,
+.statusbar,.statusbar .kbd,.modal-mask button,.ctx-menu,.emoji-panel,.icon-panel,
+.export-options .hbtn,.brand,.brand small,.bookname,.cm-size,.cm-font,.cm-label,.cm-title{
+  font-family:'FusionPixel',"Microsoft YaHei",sans-serif;
+}
+.hbtn,.wbtn,.rb-btn{
+  border:2px solid #3a2210;
+  box-shadow:0 2px 0 #2e1a0c, inset 0 2px 0 rgba(255,255,255,.14), inset 0 -3px 0 rgba(0,0,0,.22);
+  text-shadow:1px 1px 0 rgba(0,0,0,.45);
+  image-rendering:pixelated;
+}
+.hbtn{background:linear-gradient(180deg,#a86a34,#7a4f2a 55%,#5d3a1d);}
+.hbtn:hover{background:linear-gradient(180deg,#c0803f,#8f5c2f 55%,#6b4422); border-color:#e8b84b;}
+.hbtn.primary{background:linear-gradient(180deg,#f0c869,#d8a33c 55%,#a97a24); border-color:#5d3a1d;}
+.hbtn.primary:hover{filter:none; background:linear-gradient(180deg,#f7d787,#e0ad47 55%,#b8862b);}
+.wbtn{background:linear-gradient(180deg,#6b4527,#4a2c14);}
+.wbtn:hover{background:linear-gradient(180deg,#a86a34,#7a4f2a); border-color:#e8b84b;}
+.wbtn.wclose{background:linear-gradient(180deg,#a1453a,#7a2e25);}
+.rb-btn{border-radius:3px; background:linear-gradient(180deg,#8f5c2f,#6b4422);}
+.rb-btn:hover{background:linear-gradient(180deg,#a86a34,#7a4f2a);}
+.rb-select{border:2px solid #3a2210; box-shadow:0 2px 0 #2e1a0c; background:linear-gradient(180deg,#6b4422,#4a2c14); color:#f6e8c4;}
+.ctx-menu{border:3px solid #3a2210; box-shadow:0 0 0 2px #e8b84b, 0 8px 24px rgba(0,0,0,.5);}
+.cm-size,.cm-font{border:2px solid #3a2210; box-shadow:0 2px 0 #2e1a0c;}
+.brand{font-family:'FusionPixel',"Microsoft YaHei",sans-serif; text-shadow:2px 2px 0 rgba(0,0,0,.55);}
+.statusbar{font-family:'FusionPixel',"Microsoft YaHei",sans-serif;}
+/* ---- 图标可读性修复：图标字符用衬线字体渲染，SVG 提高对比度，去除像素阴影干扰 ---- */
+.rb-btn{color:#f6e8c4; text-shadow:none;}
+.rb-btn:hover{color:#ffe9b0;}
+.rb-btn b,.rb-btn i,.rb-btn u,.rb-btn s{font-family:'Georgia',serif; font-size:14px; text-shadow:none;}
+.rb-btn svg{stroke-width:2.2;}
+.rb-btn[title="插入图片"] svg,.rb-btn[title="插入时间戳"] svg{width:16px; height:16px; stroke-width:2.5; filter:drop-shadow(0 1px 1px rgba(0,0,0,.7));}
+.wbtn,.hbtn.tiny{text-shadow:none;}
+</style>
+</head>
+<body>
+
+<div class="notebook">
+  <div class="header">
+    <button class="hbtn tiny" title="折叠/展开目录" onclick="toggleSide()">☰</button>
+    <span class="brand" id="brand" onclick="editBrand()" title="点击自定义左上角标题"><span class="star">★</span> <span id="brandMain">MARVIS</span><small id="brandSub">&nbsp;星露谷笔记本</small></span>
+    <span class="bookname" id="bookName">未命名农场手账</span>
+    <button class="hbtn" onclick="cmd('newBook')">新笔记本</button>
+    <button class="hbtn" onclick="cmd('openBook')">导入</button>
+    <button class="hbtn primary" onclick="cmd('saveNow')">保存</button>
+    <button class="hbtn" onclick="cmd('exportBook')">导出</button>
+    <div class="win-controls" title="窗口控制">
+      <button class="wbtn" onclick="winMin()" title="最小化">─</button>
+      <button class="wbtn" id="winMaxBtn" onclick="winMax()" title="最大化">▢</button>
+      <button class="wbtn wclose" onclick="winClose()" title="关闭">✕</button>
+    </div>
+  </div>
+
+  <div class="inside" id="insideBox">
+    <div class="side" id="sideBox">
+      <div class="side-title"><span><span class="leaf">✦</span> 目 录</span><button class="side-fold-btn" onclick="toggleSide()">◀ 收起</button></div>
+      <div class="book-list" id="bookList"></div>
+      <div class="side-actions">
+        <button onclick="addBook()">＋ 新笔记本</button>
+        <button onclick="addPage()">＋ 新笔记</button>
+        <button onclick="renameCurBook()">重命名笔记本</button>
+        <button onclick="renameCur()">重命名笔记</button>
+        <button onclick="togglePaperPanel()">换纸张</button>
+        <button onclick="delCurBook()">删除笔记本</button>
+      </div>
+    </div>
+    <div class="page">
+      <div class="ribbon">
+        <div class="rb-group">
+          <select class="rb-select" id="fontFamily" onchange="exec('fontName',this.value); this.selectedIndex=0;">
+            <option value="" disabled selected>字体</option><option>楷体</option><option>微软雅黑</option>
+            <option>宋体</option><option>黑体</option><option>仿宋</option><option>Consolas</option><option>Arial</option>
+          </select>
+          <select class="rb-select" id="fontSize" onchange="onFontSizeSelect(this.value); this.selectedIndex=0;">
+            <option value="" disabled selected>字号</option>
+            <option value="12">12</option><option value="14">14</option><option value="16">16</option>
+            <option value="18">18</option><option value="20">20</option><option value="24">24</option>
+            <option value="28">28</option><option value="32">32</option><option value="40">40</option>
+            <option value="48">48</option><option value="64">64</option><option value="80">80</option>
+            <option value="96">96</option><option value="100">100</option><option value="custom">自定义…</option>
+          </select>
+        </div>
+        <div class="rb-group">
+          <button class="rb-btn" title="加粗" onclick="exec('bold')"><b>B</b></button>
+          <button class="rb-btn" title="斜体" onclick="exec('italic')"><i>I</i></button>
+          <button class="rb-btn" title="下划线" onclick="exec('underline')"><u>U</u></button>
+          <button class="rb-btn" title="删除线" onclick="exec('strikeThrough')"><s>S</s></button>
+          <button class="rb-btn fg-btn" title="文字颜色" onclick="toggleColorPanel(event,'fg')"><span class="dot-swatch" style="background:#3a2817"></span></button>
+          <button class="rb-btn bg-btn" title="底纹颜色" onclick="toggleColorPanel(event,'bg')"><span class="sq-swatch" style="background:#ffe08a"></span></button>
+        </div>
+        <div class="rb-group">
+          <button class="rb-btn" title="左对齐" onclick="exec('justifyLeft')"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+          <button class="rb-btn" title="居中" onclick="exec('justifyCenter')"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+          <button class="rb-btn" title="右对齐" onclick="exec('justifyRight')"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        </div>
+        <div class="rb-group">
+          <button class="rb-btn" title="插入图片" onclick="document.getElementById('fileInput').click()"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg></button>
+          <button class="rb-btn" title="插入时间戳" onclick="insertTimestamp()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg></button>
+          <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="insertImageFile(this)">
+        </div>
+        <div class="rb-group">
+          <button class="rb-btn" title="项目编号（有序列表）" onclick="exec('insertOrderedList')"><span style="font-family:Georgia,serif; font-weight:700; font-size:15px;">1.</span></button>
+          <button class="rb-btn" title="插入星露谷素材贴纸" onclick="toggleEmojiPanel()"><span style="font-size:15px;">🌾</span></button>
+        </div>
+        <div style="flex:1"></div>
+        <div class="rb-group" style="border:none"><span style="font-size:12px; color:var(--ink2);">点选图片后拖右下角金星可缩放</span></div>
+      </div>
+      <div class="page-scroll" id="pageScroll">
+        <div class="page-inner" id="editor" contenteditable="true" spellcheck="false"></div>
+        <div id="resizeHandle"></div>
+      </div>
+      <div class="emoji-panel" id="emojiPanel">
+        <div class="ep-title">✦ 星露谷素材贴纸 ✦</div>
+        <div class="emoji-grid" id="emojiGrid"></div>
+      </div>
+      <div class="paper-panel" id="paperPanel">
+        <div class="ep-title">✦ 更换纸张 ✦</div>
+        <div class="paper-cell" onclick="applyPaper('plain')">
+          <span class="paper-swatch sw-plain"></span><span><span class="pname">米黄横线纸</span><br><span class="pdesc">默认 · 笔记本原配</span></span>
+        </div>
+        <div class="paper-cell" onclick="applyPaper('kraft')">
+          <span class="paper-swatch sw-kraft"></span><span><span class="pname">牛皮纸</span><br><span class="pdesc">厚实耐磨 · 猎人手账</span></span>
+        </div>
+        <div class="paper-cell" onclick="applyPaper('ancient')">
+          <span class="paper-swatch sw-ancient"></span><span><span class="pname">古书籍</span><br><span class="pdesc">泛黄旧页 · 尘封古籍</span></span>
+        </div>
+        <div class="paper-cell" onclick="applyPaper('parchment')">
+          <span class="paper-swatch sw-parchment"></span><span><span class="pname">羊皮纸</span><br><span class="pdesc">浅色羊皮 · 冒险日志</span></span>
+        </div>
+      </div>
+      <div class="icon-panel" id="iconPanel">
+        <div class="ep-title">✦ 更换目录图标 ✦</div>
+        <div class="icon-grid" id="iconGrid"></div>
+      </div>
+      <div class="color-panel" id="colorPanel" style="display:none">
+        <div class="cp-title" id="cpTitle">文字颜色</div>
+        <div class="cp-grid" id="cpGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ctx-menu" id="ctxMenu" style="display:none">
+    <div class="cm-title">✦ 文字样式 ✦</div>
+    <div class="cm-sec"><div class="cm-label">字号</div><div class="cm-sizes" id="cmSizes"></div></div>
+    <div class="cm-sec"><div class="cm-label">字体</div><div class="cm-fonts" id="cmFonts"></div></div>
+    <div class="cm-sec"><div class="cm-label">文字颜色（圆形）</div><div class="cm-colors" id="cmFg"></div></div>
+    <div class="cm-sec"><div class="cm-label">底纹颜色（方形）</div><div class="cm-colors" id="cmBg"></div></div>
+  </div>
+
+  <div class="statusbar">
+    <span id="status">就绪 <span class="heart">♥</span></span>
+    <span><span class="star">★</span> 自动保存已开启 · <span class="kbd">Ctrl+V</span> 粘贴截图 · <span class="kbd">Ctrl+S</span> 保存 · 顶部标题栏可拖动窗口</span>
+  </div>
+</div>
+
+<div class="modal-mask" id="modalMask">
+  <div class="modal-box">
+    <div class="modal-title" id="modalTitle">重命名</div>
+    <input class="modal-input" id="modalInput" placeholder="主标题" />
+    <input class="modal-input" id="modalInput2" placeholder="副标题" style="margin-top:10px; display:none;" />
+    <div class="modal-actions">
+      <button class="hbtn" id="modalCancel">取消</button>
+      <button class="hbtn primary" id="modalOk">确定</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-mask" id="exportMask">
+  <div class="modal-box">
+    <div class="modal-title">✦ 导出笔记本</div>
+    <div class="export-meta" id="exportMeta"></div>
+    <div class="export-options">
+      <button class="hbtn" onclick="exportAsWord()"><b>W</b><span class="ed"><span>导出为 Word 文档</span><small>HTML 包装的 .doc，保留富文本样式与图片</small></span></button>
+      <button class="hbtn" onclick="exportAsPdf()"><b>P</b><span class="ed"><span>导出为 PDF 文档</span><small>A4 打印排版，保留富文本样式与图片</small></span></button>
+      <button class="hbtn" onclick="exportAsMbook()"><b>M</b><span class="ed"><span>导出为 Marvis 笔记本 (.mbook)</span><small>备份 / 跨电脑迁移专用格式，可重新导入</small></span></button>
+    </div>
+    <div class="modal-actions">
+      <button class="hbtn" id="exportCancel">取消</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const editor = document.getElementById('editor');
+const pageScroll = document.getElementById('pageScroll');
+const bookListEl = document.getElementById('bookList');
+const statusEl = document.getElementById('status');
+const bookNameEl = document.getElementById('bookName');
+const handle = document.getElementById('resizeHandle');
+const sideBox = document.getElementById('sideBox');
+const insideBox = document.getElementById('insideBox');
+const paperPanel = document.getElementById('paperPanel');
+
+let books = [];            // [{id,name,pages:[{id,title,html}]}]
+let curBookId = null;
+let curPageId = null;
+let collapsedBooks = {};   // bookId -> true
+let persistTimer = null;
+
+function setStatus(t){ statusEl.innerHTML = t + ' <span class="heart">♥</span>'; }
+function curBook(){ return books.find(b => b.id === curBookId) || null; }
+function curPage(){ const b = curBook(); return b ? b.pages.find(p => p.id === curPageId) || null : null; }
+function saveCur(){ const p = curPage(); if (p) p.html = editor.innerHTML; }
+function loadCur(){
+  const p = curPage();
+  editor.innerHTML = p ? p.html : '';
+  clearSel();
+}
+function escapeHtml(s){ return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function snapshot(){ saveCur(); return { books, collapsed: collapsedBooks, curBookId, curPageId }; }
+
+function toggleSide(){
+  sideBox.classList.toggle('folded');
+  insideBox.classList.toggle('folded');
+  setTimeout(() => { if (selImg) posHandle(); }, 220);
+}
+
+function renderList(){
+  bookListEl.innerHTML = '';
+  books.forEach(b => {
+    const item = document.createElement('div');
+    item.className = 'book-item';
+    const head = document.createElement('div');
+    head.className = 'book-head' + (b.id === curBookId ? ' active' : '');
+    head.innerHTML = '<span class="book-arrow">' + (collapsedBooks[b.id] ? '▶' : '▼') + '</span>'
+      + '<img class="book-icon" src="assets/bookicon/' + bookIcon(b) + '" title="点击更换图标">'
+      + '<span class="book-dot" style="background:' + paperColor(b.paper) + '"></span><span class="book-name">' + escapeHtml(b.name) + '</span>'
+      + '<span style="font-size:11px;color:var(--ink2);">' + b.pages.length + '页</span>'
+      + '<button class="del" title="删除笔记本">×</button>';
+    head.onclick = () => selectBook(b.id);
+    head.ondblclick = () => renameBook(b.id);
+    head.querySelector('.book-icon').onclick = e => { e.stopPropagation(); openIconPanel(b.id); };
+    head.querySelector('.del').onclick = e => { e.stopPropagation(); delBook(b.id); };
+    const wrap = document.createElement('div');
+    wrap.className = 'book-pages' + (collapsedBooks[b.id] ? ' collapsed' : '');
+    b.pages.forEach(p => {
+      const d = document.createElement('div');
+      d.className = 'pitem' + (p.id === curPageId && b.id === curBookId ? ' active' : '');
+      d.innerHTML = '<span style="flex:1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">' + escapeHtml(p.title) + '</span><button class="del" title="删除">×</button>';
+      d.onclick = () => switchPage(b.id, p.id);
+      d.ondblclick = () => renamePage(b.id, p.id);
+      d.querySelector('.del').onclick = e => { e.stopPropagation(); delPage(b.id, p.id); };
+      wrap.appendChild(d);
+    });
+    item.appendChild(head);
+    item.appendChild(wrap);
+    bookListEl.appendChild(item);
+  });
+  const b = curBook();
+  bookNameEl.textContent = b ? b.name : '未命名农场手账';
+  applyPaperClass();
+}
+
+/* ---- 纸张类型：按笔记本切换 ---- */
+const PAPER_COLORS = { plain:'#fbf1d9', kraft:'#cda060', ancient:'#d3bf95', parchment:'#e9d5ae' };
+const PAPER_NAMES = { plain:'米黄横线纸', kraft:'牛皮纸', ancient:'古书籍', parchment:'羊皮纸' };
+function paperColor(p){ return PAPER_COLORS[p] || PAPER_COLORS.plain; }
+function applyPaperClass(){
+  const p = curBook() ? (curBook().paper || 'plain') : 'plain';
+  insideBox.classList.remove('paper-plain','paper-kraft','paper-ancient','paper-parchment');
+  insideBox.classList.add('paper-' + p);
+}
+function togglePaperPanel(){
+  paperPanel.style.display = paperPanel.style.display === 'block' ? 'none' : 'block';
+}
+function applyPaper(p){
+  const b = curBook(); if (!b) return;
+  b.paper = p;
+  paperPanel.style.display = 'none';
+  renderList(); persistSoon();
+  setStatus('已更换纸张：' + (PAPER_NAMES[p] || p));
+}
+
+function selectBook(id){
+  const b = books.find(x => x.id === id);
+  if (!b) return;
+  if (curBookId !== id) {
+    saveCur();
+    curBookId = id;
+    curPageId = b.pages.length ? b.pages[0].id : null;
+    collapsedBooks[id] = false;
+    loadCur(); renderList(); persistSoon();
+    setStatus('已切换到笔记本：' + b.name);
+  } else {
+    collapsedBooks[id] = !collapsedBooks[id];
+    renderList(); persistSoon();
+  }
+}
+
+function switchPage(bookId, pageId){
+  saveCur();
+  curBookId = bookId;
+  curPageId = pageId;
+  loadCur(); renderList(); persistSoon();
+  const b = curBook(), p = curPage();
+  setStatus('已切换到：' + (b ? b.name + ' / ' : '') + (p ? p.title : ''));
+}
+
+function addBook(){
+  saveCur();
+  const id = 'b' + Date.now();
+  books.push({id, name: '农场手账 ' + (books.length + 1), paper: 'plain', pages: [{id: 'p' + Date.now(), title: '笔记 1', html: ''}]});
+  curBookId = id;
+  curPageId = books[books.length - 1].pages[0].id;
+  loadCur(); renderList(); persistSoon();
+  setStatus('已新建笔记本');
+}
+
+function addPage(){
+  const b = curBook(); if (!b) return;
+  saveCur();
+  const pid = 'p' + Date.now();
+  b.pages.push({id: pid, title: '新笔记 ' + (b.pages.length + 1), html: ''});
+  curPageId = pid;
+  collapsedBooks[b.id] = false;
+  loadCur(); renderList(); persistSoon();
+  setStatus('已新建笔记页');
+}
+
+function delPage(bookId, pageId){
+  const b = books.find(x => x.id === bookId);
+  if (!b || b.pages.length <= 1) { showAlert('笔记本至少保留一页'); return; }
+  const p = b.pages.find(x => x.id === pageId);
+  if (!p) return;
+  showConfirm('确定删除笔记「' + p.title + '」？', () => {
+    b.pages = b.pages.filter(x => x.id !== pageId);
+    if (curBookId === bookId && curPageId === pageId) {
+      curPageId = b.pages[0].id;
+      loadCur();
+    }
+    renderList(); persistSoon(); setStatus('已删除笔记');
+  });
+}
+function delBook(bookId){
+  const b = books.find(x => x.id === bookId);
+  if (!b) return;
+  if (books.length <= 1) { showAlert('至少保留一个笔记本'); return; }
+  showConfirm('确定删除笔记本「' + b.name + '」？将连同其 ' + b.pages.length + ' 页笔记一起删除。', () => {
+    const idx = books.findIndex(x => x.id === bookId);
+    books.splice(idx, 1);
+    delete collapsedBooks[bookId];
+    if (curBookId === bookId) {
+      const nb = books[Math.min(idx, books.length - 1)];
+      curBookId = nb.id;
+      curPageId = nb.pages.length ? nb.pages[0].id : null;
+      loadCur();
+    }
+    renderList(); persistSoon(); setStatus('已删除笔记本');
+  });
+}
+function delCurBook(){ const b = curBook(); if (b) delBook(b.id); }
+
+function renameCur(){ const b = curBook(); if (!b) return; renamePage(b.id, curPageId); }
+function renameCurBook(){ const b = curBook(); if (!b) return; renameBook(b.id); }
+function renameBook(bookId){
+  const b = books.find(x => x.id === bookId); if (!b) return;
+  showPrompt('重命名笔记本', b.name, t => {
+    if (t && t.trim()) { b.name = t.trim(); renderList(); persistSoon(); setStatus('已重命名笔记本'); }
+  });
+}
+function renamePage(bookId, pageId){
+  const b = books.find(x => x.id === bookId); if (!b) return;
+  const p = b.pages.find(x => x.id === pageId); if (!p) return;
+  showPrompt('重命名笔记', p.title, t => {
+    if (t && t.trim()) { p.title = t.trim(); renderList(); persistSoon(); setStatus('已重命名笔记'); }
+  });
+}
+
+/* ---- 自绘模态框（Electron 不支持 window.prompt） ---- */
+const modalMask = document.getElementById('modalMask');
+const modalTitle = document.getElementById('modalTitle');
+const modalInput = document.getElementById('modalInput');
+const modalInput2 = document.getElementById('modalInput2');
+const modalOk = document.getElementById('modalOk');
+const modalCancel = document.getElementById('modalCancel');
+let modalCb = null;
+function showPrompt(title, def, cb){
+  modalTitle.textContent = title;
+  modalInput.style.display = '';
+  modalInput2.style.display = 'none';
+  modalInput.value = def || '';
+  modalOk.textContent = '确定';
+  modalCancel.style.display = '';
+  modalCb = cb;
+  modalMask.style.display = 'flex';
+  modalInput.focus(); modalInput.select();
+}
+function showPrompt2(title, def1, def2, cb){
+  modalTitle.textContent = title;
+  modalInput.style.display = '';
+  modalInput2.style.display = '';
+  modalInput.value = def1 || '';
+  modalInput2.value = def2 || '';
+  modalOk.textContent = '确定';
+  modalCancel.style.display = '';
+  modalCb = cb;
+  modalMask.style.display = 'flex';
+  modalInput.focus(); modalInput.select();
+}
+function showConfirm(title, cb){
+  modalTitle.textContent = title;
+  modalInput.style.display = 'none';
+  modalInput2.style.display = 'none';
+  modalOk.textContent = '删除';
+  modalCancel.style.display = '';
+  modalCb = cb;
+  modalMask.style.display = 'flex';
+}
+function showAlert(title){
+  modalTitle.textContent = title;
+  modalInput.style.display = 'none';
+  modalInput2.style.display = 'none';
+  modalOk.textContent = '知道了';
+  modalCancel.style.display = 'none';
+  modalCb = null;
+  modalMask.style.display = 'flex';
+}
+function hideModal(){ modalMask.style.display = 'none'; modalCb = null; }
+modalOk.onclick = () => { const cb = modalCb; hideModal(); if (cb) cb(modalInput.value, modalInput2.value); };
+modalCancel.onclick = hideModal;
+modalInput.addEventListener('keydown', e => { if (e.key === 'Enter') modalOk.onclick(); if (e.key === 'Escape') hideModal(); });
+
+/* ---- 富文本（保留选区） ---- */
+let savedRange = null;
+editor.addEventListener('blur', () => {
+  const sel = window.getSelection();
+  if (sel && sel.rangeCount) savedRange = sel.getRangeAt(0).cloneRange();
+});
+editor.addEventListener('focus', () => { savedRange = null; });
+function restoreRange(){
+  editor.focus();
+  const sel = window.getSelection();
+  if (savedRange && sel) { sel.removeAllRanges(); sel.addRange(savedRange); }
+}
+function exec(cmd, val){
+  restoreRange();
+  document.execCommand('styleWithCSS', false, true);
+  document.execCommand(cmd, false, val); setStatus(cmd); persistSoon();
+}
+let pendingFontPx = 0;
+let pendingFontBase = new Set();
+function setFontSize(v){
+  v = Math.round(Number(v));
+  if (isNaN(v) || v < 8 || v > 200) { setStatus('字号需为 8-200 的数值'); return; }
+  restoreRange();
+  const sel0 = window.getSelection();
+  const hasSel = sel0 && sel0.rangeCount && !sel0.isCollapsed;
+  if (!hasSel) {
+    pendingFontPx = v;
+    pendingFontBase = new Set(Array.from(editor.querySelectorAll('font[size="7"], span[style*="font-size"]')));
+    setStatus('已设置字号 ' + v + 'px（继续输入即生效）'); persistSoon();
+    return;
+  }
+  document.execCommand('styleWithCSS', false, false);
+  document.execCommand('fontSize', false, 7);
+  document.execCommand('styleWithCSS', false, true);
+  const sel = window.getSelection();
+  const rng = sel && sel.rangeCount ? sel.getRangeAt(0) : null;
+  if (rng) {
+    const hits = [];
+    editor.querySelectorAll('font[size="7"], span[style*="font-size"]').forEach(f => {
+      try { if (rng.intersectsNode(f)) hits.push(f); } catch (e) {}
+    });
+    hits.forEach(f => {
+      const span = document.createElement('span');
+      span.style.fontSize = v + 'px';
+      while (f.firstChild) span.appendChild(f.firstChild);
+      f.replaceWith(span);
+    });
+  }
+  setStatus('已设置字号 ' + v + 'px'); persistSoon();
+}
+function onFontSizeSelect(v){
+  if (v === 'custom') {
+    showPrompt('自定义字号（8-200）', '48', val => {
+      const n = parseInt(val, 10);
+      if (!isNaN(n)) setFontSize(n);
+    });
+    return;
+  }
+  setFontSize(parseInt(v, 10));
+}
+/* ---- 常用色与右键样式菜单 ---- */
+const FG_COLORS = ['#1f1a14','#3a2817','#5c3a1a','#8a5a00','#1f4e79','#2e5b2e','#6b2e6b','#7a1f2b','#14565c','#b95d1a','#444444','#000000'];
+const BG_COLORS = ['#ffe08a','#ffd1a8','#ffb3b3','#c9f0d4','#bde3f5','#e0d0f0','#f7e6c2','#d0e8c9','#f5c6c6','#c9daf8','#d9d9d9','#fff1b8'];
+const FONT_SIZES = [[12,'12'],[14,'14'],[16,'16'],[18,'18'],[20,'20'],[24,'24'],[28,'28'],[32,'32'],[40,'40'],[48,'48'],[64,'64'],[80,'80'],[96,'96'],[100,'100']];
+const FONT_NAMES = ['楷体','微软雅黑','宋体','黑体','仿宋','Consolas'];
+
+const colorPanel = document.getElementById('colorPanel');
+const cpTitle = document.getElementById('cpTitle');
+const cpGrid = document.getElementById('cpGrid');
+let colorMode = 'fg';
+function buildColorGrid(mode){
+  const list = mode === 'fg' ? FG_COLORS : BG_COLORS;
+  cpGrid.innerHTML = '';
+  list.forEach(c => {
+    const sw = document.createElement('div');
+    sw.className = 'cp-swatch ' + mode;
+    sw.style.background = c;
+    sw.title = c;
+    sw.onclick = () => { exec(mode === 'fg' ? 'foreColor' : 'hiliteColor', c); closeColorPanel(); setStatus(mode === 'fg' ? '已设置文字颜色' : '已设置底纹颜色'); };
+    cpGrid.appendChild(sw);
+  });
+  if (mode === 'bg') {
+    const none = document.createElement('div');
+    none.className = 'cp-swatch bg';
+    none.style.background = 'transparent';
+    none.style.border = '1px dashed rgba(0,0,0,.45)';
+    none.style.position = 'relative';
+    none.innerHTML = '<span style="position:absolute;left:-1px;top:-1px;width:18px;height:18px;background:linear-gradient(135deg,transparent 43%,#a33 44%,#a33 56%,transparent 57%);"></span>';
+    none.title = '无底纹';
+    none.onclick = () => { exec('hiliteColor', 'transparent'); closeColorPanel(); setStatus('已清除底纹'); };
+    cpGrid.appendChild(none);
+  }
+}
+function toggleColorPanel(e, mode){
+  if (e) { e.stopPropagation(); e.preventDefault(); }
+  if (colorPanel.style.display === 'block' && colorMode === mode) { closeColorPanel(); return; }
+  colorMode = mode;
+  cpTitle.textContent = mode === 'fg' ? '文字颜色' : '底纹颜色';
+  buildColorGrid(mode);
+  const btn = mode === 'fg' ? document.querySelector('.fg-btn') : document.querySelector('.bg-btn');
+  const r = btn.getBoundingClientRect();
+  colorPanel.style.left = Math.min(r.left, window.innerWidth - 180) + 'px';
+  colorPanel.style.top = (r.bottom + 6) + 'px';
+  colorPanel.style.display = 'block';
+}
+function closeColorPanel(){ colorPanel.style.display = 'none'; }
+
+/* 右键悬浮菜单 */
+const ctxMenu = document.getElementById('ctxMenu');
+function buildCtxMenu(){
+  document.getElementById('cmSizes').innerHTML = FONT_SIZES.map(a => '<div class="cm-size" data-v="' + a[0] + '">' + a[1] + '</div>').join('') + '<div class="cm-size" data-v="custom" style="min-width:60px; color:#c98a2e;">自定义…</div>';
+  document.getElementById('cmFonts').innerHTML = FONT_NAMES.map(f => '<div class="cm-font" data-f="' + f + '">' + f + '</div>').join('');
+  const fg = document.getElementById('cmFg'), bg = document.getElementById('cmBg');
+  fg.innerHTML = ''; bg.innerHTML = '';
+  FG_COLORS.forEach(c => { const d = document.createElement('div'); d.className = 'cm-swatch fg'; d.style.background = c; d.onclick = () => { exec('foreColor', c); hideCtxMenu(); setStatus('已设置文字颜色'); }; fg.appendChild(d); });
+  BG_COLORS.forEach(c => { const d = document.createElement('div'); d.className = 'cm-swatch bg'; d.style.background = c; d.onclick = () => { exec('hiliteColor', c); hideCtxMenu(); setStatus('已设置底纹颜色'); }; bg.appendChild(d); });
+  const none = document.createElement('div');
+  none.className = 'cm-swatch bg';
+  none.style.background = 'transparent';
+  none.style.border = '1px dashed rgba(240,200,105,.5)';
+  none.style.position = 'relative';
+  none.innerHTML = '<span style="position:absolute;left:-1px;top:-1px;width:18px;height:18px;background:linear-gradient(135deg,transparent 43%,#e88 44%,#e88 56%,transparent 57%);"></span>';
+  none.title = '无底纹';
+  none.onclick = () => { exec('hiliteColor', 'transparent'); hideCtxMenu(); setStatus('已清除底纹'); };
+  bg.appendChild(none);
+}
+function showCtxMenu(x, y){
+  buildCtxMenu();
+  ctxMenu.style.display = 'block';
+  const r = ctxMenu.getBoundingClientRect();
+  ctxMenu.style.left = Math.min(x, window.innerWidth - r.width - 8) + 'px';
+  ctxMenu.style.top = Math.min(y, window.innerHeight - r.height - 8) + 'px';
+}
+function hideCtxMenu(){ ctxMenu.style.display = 'none'; }
+document.getElementById('cmSizes').addEventListener('click', e => {
+  const t = e.target.closest('.cm-size'); if (!t) return;
+  if (t.dataset.v === 'custom') {
+    showPrompt('自定义字号（8-200）', '48', val => {
+      const n = parseInt(val, 10);
+      if (!isNaN(n)) setFontSize(n);
+    });
+    hideCtxMenu();
+    return;
+  }
+  setFontSize(t.dataset.v); hideCtxMenu();
+});
+document.getElementById('cmFonts').addEventListener('click', e => {
+  const t = e.target.closest('.cm-font'); if (!t) return;
+  exec('fontName', t.dataset.f); hideCtxMenu(); setStatus('已设置字体：' + t.dataset.f);
+});
+editor.addEventListener('contextmenu', e => {
+  const sel = window.getSelection();
+  if (!sel || !sel.rangeCount || sel.isCollapsed) return;
+  e.preventDefault();
+  if (sel.rangeCount) savedRange = sel.getRangeAt(0).cloneRange();
+  showCtxMenu(e.clientX, e.clientY);
+});
+document.addEventListener('mousedown', e => {
+  if (ctxMenu.style.display === 'block' && !ctxMenu.contains(e.target)) hideCtxMenu();
+  if (colorPanel.style.display === 'block' && !colorPanel.contains(e.target) && !e.target.closest('.fg-btn') && !e.target.closest('.bg-btn')) closeColorPanel();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { hideCtxMenu(); closeColorPanel(); } });
+ctxMenu.addEventListener('mousedown', e => e.preventDefault());
+function insertTimestamp(){
+  restoreRange();
+  const d = new Date(), pad = n => String(n).padStart(2,'0');
+  document.execCommand('insertText', false, '\n[' + d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) + ']\n');
+  persistSoon();
+}
+editor.addEventListener('input', () => {
+  if (pendingFontPx) {
+    const base = pendingFontBase;
+    const v = pendingFontPx;
+    pendingFontPx = 0;
+    editor.querySelectorAll('font[size="7"], span[style*="font-size"]').forEach(f => {
+      if (base.has(f)) return;
+      const span = document.createElement('span');
+      span.style.fontSize = v + 'px';
+      while (f.firstChild) span.appendChild(f.firstChild);
+      f.replaceWith(span);
+    });
+  }
+  persistSoon();
+});
+
+/* ---- 图片 ---- */
+editor.addEventListener('paste', e => {
+  const items = e.clipboardData && e.clipboardData.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type && item.type.startsWith('image/')) {
+      e.preventDefault();
+      const file = item.getAsFile();
+      const reader = new FileReader();
+      reader.onload = ev => { editor.focus(); document.execCommand('insertImage', false, ev.target.result); setStatus('已粘贴截图'); persistSoon(); };
+      reader.readAsDataURL(file); return;
+    }
+  }
+});
+function insertImageFile(input){
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => { editor.focus(); document.execCommand('insertImage', false, ev.target.result); setStatus('已插入图片：' + file.name); persistSoon(); };
+  reader.readAsDataURL(file); input.value = '';
+}
+
+let selImg = null, ratio = 1, resizing = false;
+function clearSel(){
+  if (selImg) selImg.classList.remove('sel');
+  selImg = null; handle.style.display = 'none';
+}
+function posHandle(){
+  if (!selImg) return;
+  const r = selImg.getBoundingClientRect(), er = pageScroll.getBoundingClientRect();
+  handle.style.left = (r.right - er.left - 9) + 'px';
+  handle.style.top = (r.top - er.top - 9 + pageScroll.scrollTop) + 'px';
+}
+editor.addEventListener('click', e => {
+  const img = e.target.closest ? e.target.closest('img') : null;
+  if (img) { e.preventDefault(); clearSel(); selImg = img; ratio = (img.naturalHeight || 1) / (img.naturalWidth || 1); img.classList.add('sel'); handle.style.display = 'block'; posHandle(); setStatus('拖拽右下角金星调整图片大小'); }
+  else clearSel();
+});
+window.addEventListener('scroll', () => { if (selImg) posHandle(); }, true);
+handle.addEventListener('mousedown', e => { e.preventDefault(); e.stopPropagation(); resizing = true; });
+document.addEventListener('mousemove', e => {
+  if (!resizing || !selImg) return;
+  const er = pageScroll.getBoundingClientRect();
+  let w = e.clientX - er.left - selImg.offsetLeft + 9;
+  w = Math.max(50, Math.min(w, er.width - 60));
+  selImg.style.width = w + 'px';
+  posHandle();
+});
+document.addEventListener('mouseup', () => { if (resizing) { resizing = false; persistSoon(); } });
+
+/* ---- 持久化：防抖异步保存 + 关闭前同步兜底 ---- */
+function persistSoon(){
+  clearTimeout(persistTimer);
+  persistTimer = setTimeout(persistNow, 300);
+}
+function persistNow(){
+  const api = window.api;
+  if (!api) return;
+  try { api.save(snapshot()); } catch (e) {}
+}
+function persistSyncNow(){
+  const api = window.api;
+  if (!api) return;
+  try { api.saveSync(snapshot()); } catch (e) {}
+}
+window.addEventListener('beforeunload', () => {
+  persistSyncNow();
+});
+
+/* ---- 快捷键 ---- */
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); cmd('saveNow'); }
+  else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'n') { e.preventDefault(); cmd('newBook'); }
+  else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'o') { e.preventDefault(); cmd('openBook'); }
+  else if (e.key === 'Escape') clearSel();
+});
+
+/* ---- 文件操作 ---- */
+async function cmd(name){
+  const api = window.api;
+  if (!api) { setStatus('本地接口不可用'); return; }
+  if (name === 'newBook') {
+    addBook();
+  } else if (name === 'openBook') {
+    saveCur();
+    const r = await api.importBook();
+    if (r && r.ok) {
+      const bid = 'b' + Date.now();
+      books.push({id: bid, name: r.name || '导入的笔记本', paper: 'plain', pages: r.pages || []});
+      curBookId = bid;
+      curPageId = books[books.length - 1].pages.length ? books[books.length - 1].pages[0].id : null;
+      collapsedBooks[bid] = false;
+      loadCur(); renderList(); persistNow();
+      setStatus('已导入恢复：' + r.path);
+    } else if (r && r.canceled) setStatus('已取消导入');
+    else setStatus('导入失败' + (r && r.error ? '：' + r.error : ''));
+  } else if (name === 'exportBook') {
+    saveCur();
+    const b = curBook(); if (!b) return;
+    showExportPanel();
+  } else if (name === 'saveNow') {
+    persistSyncNow();
+    const b = curBook();
+    setStatus('已保存到本地库：' + (b ? b.name : ''));
+  }
+}
+
+/* ---- 导出面板：Word / PDF / .mbook（自绘模态，Electron 渲染进程不支持 prompt/confirm） ---- */
+const exportMask = document.getElementById('exportMask');
+function showExportPanel(){
+  const b = curBook(); if (!b) return;
+  const meta = document.getElementById('exportMeta');
+  meta.textContent = '当前笔记本：「' + b.name + '」 · 共 ' + b.pages.length + ' 页 · 选择格式后将由系统对话框自选保存位置';
+  exportMask.style.display = 'flex';
+}
+function hideExportPanel(){ exportMask.style.display = 'none'; }
+document.getElementById('exportCancel').onclick = hideExportPanel;
+exportMask.addEventListener('click', e => { if (e.target === exportMask) hideExportPanel(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && exportMask.style.display === 'flex') hideExportPanel(); });
+
+// 构建导出用 HTML：笔记本标题 + 各页标题与富文本内容，页间插入分页符；复用当前纸张底色与横线纹理实现 PDF 所见即所得
+const PAPER_BG = {
+  plain:   'repeating-linear-gradient(180deg, transparent 0 31px, rgba(180,160,120,.28) 31px 32px), #fbf1d9',
+  kraft:   'repeating-linear-gradient(180deg, transparent 0 31px, rgba(96,60,26,.30) 31px 32px), repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 2px, transparent 2px 5px), #cda060',
+  ancient: 'radial-gradient(ellipse at 50% 30%, rgba(255,250,235,.22), transparent 70%), radial-gradient(ellipse at center, transparent 52%, rgba(85,55,25,.18) 100%), repeating-linear-gradient(180deg, transparent 0 31px, rgba(118,92,56,.15) 31px 32px), repeating-linear-gradient(90deg, rgba(255,255,255,.03) 0 3px, transparent 3px 7px), #d3bf95',
+  parchment:'radial-gradient(circle at 18% 22%, rgba(120,85,40,.08) 0 2px, transparent 3px), radial-gradient(circle at 74% 60%, rgba(120,85,40,.07) 0 2px, transparent 3px), radial-gradient(circle at 40% 82%, rgba(120,85,40,.06) 0 2px, transparent 3px), repeating-linear-gradient(180deg, transparent 0 31px, rgba(150,115,70,.22) 31px 32px), #e9d5ae'
+};
+const PAPER_INK = { plain:'#4a3a28', kraft:'#33220f', ancient:'#382a16', parchment:'#3d2f1c' };
+function buildExportHtml(){
+  const b = curBook(); if (!b) return null;
+  const title = b.name || '未命名笔记本';
+  const paper = b.paper || 'plain';
+  let body = '';
+  b.pages.forEach((p, i) => {
+    if (i > 0) body += '<div style="page-break-before:always;"></div>';
+    body += '<h1>' + escapeHtml(p.title) + '</h1>';
+    body += '<div class="note-content">' + (p.html || '<p></p>') + '</div>';
+  });
+  return '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><title>' + escapeHtml(title) + '</title>'
+    + '<style>'
+    + 'body{font-family:"楷体","KaiTi","Microsoft YaHei",serif; font-size:17px; line-height:32px; color:' + (PAPER_INK[paper] || PAPER_INK.plain) + '; margin:0 auto; padding:26px 40px 60px; max-width:820px; background:' + (PAPER_BG[paper] || PAPER_BG.plain) + ';}'
+    + 'h1{font-size:23px; color:#4a2c14; letter-spacing:1px; border-bottom:2px solid #e8b84b; padding-bottom:6px; margin:0 0 14px;}'
+    + '.note-content{margin-bottom:24px;}'
+    + '.note-content p{margin:6px 0;}'
+    + '.note-content img{max-width:100%; height:auto; border-radius:4px; margin:8px 0;}'
+    + '.note-content img.emoji-inline{width:26px; height:26px; object-fit:cover; display:inline-block; vertical-align:middle; margin:0 2px; border-radius:4px;}'
+    + '.note-content font[size="1"]{font-size:11px;} .note-content font[size="2"]{font-size:13px;} .note-content font[size="3"]{font-size:15px;} .note-content font[size="4"]{font-size:17px;} .note-content font[size="5"]{font-size:20px;} .note-content font[size="6"]{font-size:24px;} .note-content font[size="7"]{font-size:30px;}'
+    + '</style></head><body>' + body + '</body></html>';
+}
+async function exportAsWord(){
+  saveCur();
+  const b = curBook(); if (!b) return;
+  hideExportPanel(); setStatus('正在导出 Word…');
+  const html = buildExportHtml(); if (!html) return;
+  const r = await window.api.exportWord({ name: b.name, html });
+  if (r && r.ok) setStatus('已导出 Word：' + r.path);
+  else if (r && r.canceled) setStatus('已取消导出');
+  else setStatus('导出失败' + (r && r.error ? '：' + r.error : ''));
+}
+async function exportAsPdf(){
+  saveCur();
+  const b = curBook(); if (!b) return;
+  hideExportPanel(); setStatus('正在导出 PDF…');
+  const html = buildExportHtml(); if (!html) return;
+  const r = await window.api.exportPdf({ name: b.name, html });
+  if (r && r.ok) setStatus('已导出 PDF：' + r.path);
+  else if (r && r.canceled) setStatus('已取消导出');
+  else setStatus('导出失败' + (r && r.error ? '：' + r.error : ''));
+}
+async function exportAsMbook(){
+  saveCur();
+  const b = curBook(); if (!b) return;
+  hideExportPanel(); setStatus('正在导出 Marvis 笔记本…');
+  const r = await window.api.exportBook({ name: b.name, pages: b.pages });
+  if (r && r.ok) setStatus('已导出：' + r.path);
+  else if (r && r.canceled) setStatus('已取消导出');
+  else setStatus('导出失败' + (r && r.error ? '：' + r.error : ''));
+}
+
+/* ---- 窗口控制（自绘一体式标题栏） ---- */
+function winMin(){ if (window.api && window.api.minimize) window.api.minimize(); }
+function winMax(){ if (window.api && window.api.maximize) window.api.maximize(); }
+function winClose(){ if (window.api && window.api.close) window.api.close(); }
+if (window.api && window.api.onMaxState) {
+  window.api.onMaxState(v => {
+    const b = document.getElementById('winMaxBtn');
+    if (b) { b.textContent = v ? '❐' : '▢'; b.title = v ? '还原' : '最大化'; }
+  });
+}
+
+/* ---- 星露谷素材贴纸（emoji 面板） ---- */
+const EMOJI_LIST = [
+  {f:'fish1_1', t:'鱼'}, {f:'fish1_5', t:'鱼'}, {f:'fish1_8', t:'鱼'}, {f:'fish1_9', t:'鱼'}, {f:'fish1_15', t:'鱼'}, {f:'fish1_19', t:'鱼'}, {f:'fish1_20', t:'鱼'},
+  {f:'crop1_0', t:'作物'}, {f:'crop1_3', t:'作物'}, {f:'crop1_5', t:'作物'}, {f:'crop1_8', t:'作物'}, {f:'crop1_11', t:'作物'}, {f:'crop1_14', t:'作物'},
+  {f:'fish2_0', t:'鱼'}, {f:'fish2_4', t:'鱼'}, {f:'fish2_6', t:'鱼'}, {f:'fish2_11', t:'鱼'}, {f:'fish2_12', t:'鱼'}, {f:'fish2_15', t:'鱼'},
+  {f:'fish3_0', t:'特殊鱼'}, {f:'fish3_1', t:'特殊鱼'}, {f:'fish3_3', t:'特殊鱼'}
+];
+/* ---- 目录图标：19 个星露谷图标，可自选，默认按 id 稳定随机 ---- */
+const BOOK_ICONS = [
+  {f:'bookicon_01.png', t:'星之书'}, {f:'bookicon_02.png', t:'胡萝卜'}, {f:'bookicon_03.png', t:'鱼'},
+  {f:'bookicon_04.png', t:'蘑菇'}, {f:'bookicon_05.png', t:'圣诞树'}, {f:'bookicon_06.png', t:'火山'},
+  {f:'bookicon_07.png', t:'火焰'}, {f:'bookicon_08.png', t:'玉米'}, {f:'bookicon_09.png', t:'螺旋草'},
+  {f:'bookicon_10.png', t:'爱心'}, {f:'bookicon_11.png', t:'恶魔头'}, {f:'bookicon_12.png', t:'蛇'},
+  {f:'bookicon_13.png', t:'太阳'}, {f:'bookicon_14.png', t:'雪花'}, {f:'bookicon_15.png', t:'冰晶'},
+  {f:'bookicon_16.png', t:'宝箱'}, {f:'bookicon_17.png', t:'麦穗'}, {f:'bookicon_18.png', t:'螃蟹'},
+  {f:'bookicon_19.png', t:'门'}
+];
+function hashId(s){ let h = 0; for (let i=0;i<s.length;i++){ h = (h*31 + s.charCodeAt(i)) >>> 0; } return h; }
+function bookIcon(b){ if (b && b.icon) return b.icon; return BOOK_ICONS[hashId(b ? b.id : 'x') % BOOK_ICONS.length].f; }
+const iconPanel = document.getElementById('iconPanel');
+const iconGrid = document.getElementById('iconGrid');
+let iconBookId = null;
+function openIconPanel(bookId){
+  iconBookId = bookId;
+  if (!iconGrid.children.length) buildIconPanel();
+  iconPanel.style.display = 'block';
+  setStatus('点击图标为「' + (books.find(x => x.id === bookId) || {}).name + '」更换目录图标');
+}
+function buildIconPanel(){
+  iconGrid.innerHTML = '';
+  BOOK_ICONS.forEach(it => {
+    const cell = document.createElement('div');
+    cell.className = 'icon-cell';
+    cell.title = it.t;
+    cell.innerHTML = '<img src="assets/bookicon/' + it.f + '" alt="' + it.t + '">';
+    cell.onclick = () => applyBookIcon(it.f);
+    iconGrid.appendChild(cell);
+  });
+  const rnd = document.createElement('div');
+  rnd.className = 'icon-cell rnd-cell';
+  rnd.title = '随机一个';
+  rnd.textContent = '🎲';
+  rnd.onclick = () => applyBookIcon(null);
+  iconGrid.appendChild(rnd);
+}
+function applyBookIcon(f){
+  const b = books.find(x => x.id === iconBookId);
+  if (b) {
+    if (f) b.icon = f; else delete b.icon;
+    persistSoon();
+    renderList();
+    setStatus(f ? '已更换图标：' + (BOOK_ICONS.find(x => x.f === f) || {}).t : '已设为随机图标');
+  }
+  iconPanel.style.display = 'none';
+}
+const emojiPanel = document.getElementById('emojiPanel');
+const emojiGrid = document.getElementById('emojiGrid');
+async function buildEmojiPanel(){
+  if (emojiGrid.children.length) return;
+  let files = [];
+  try { if (window.api && window.api.listEmoji) files = await window.api.listEmoji(); } catch(e){}
+  const titleOf = {};
+  EMOJI_LIST.forEach(it => { titleOf[it.f] = it.t; });
+  files.forEach(f => {
+    if (!/\.(png|jpe?g|gif|webp)$/i.test(f)) return;
+    const key = f.replace(/\.\w+$/, '');
+    const cell = document.createElement('div');
+    cell.className = 'emoji-cell';
+    cell.title = titleOf[key] || '自定义素材';
+    cell.innerHTML = '<img src="assets/emoji/' + f + '" alt="素材"><span class="ec-del" title="删除素材">×</span>';
+    cell.onclick = (e) => { if (e.target.classList.contains('ec-del')) return; insertEmoji('assets/emoji/' + f); };
+    cell.querySelector('.ec-del').onclick = (e) => { e.stopPropagation(); confirmDeleteEmoji(f); };
+    emojiGrid.appendChild(cell);
+  });
+  const add = document.createElement('div');
+  add.className = 'emoji-cell add-emoji-cell';
+  add.title = '添加自定义素材';
+  add.textContent = '+';
+  add.onclick = addEmoji;
+  emojiGrid.appendChild(add);
+}
+async function confirmDeleteEmoji(f){
+  if (!window.api || !window.api.deleteEmoji) { setStatus('当前环境不支持删除素材'); return; }
+  showConfirm('确定删除素材「' + f + '」吗？将移入回收站。', async () => {
+    const res = await window.api.deleteEmoji(f);
+    if (res && res.ok) {
+      emojiGrid.innerHTML = '';
+      buildEmojiPanel();
+      setStatus('已删除素材：' + f);
+    } else {
+      setStatus('删除失败：' + (res ? res.reason : '未知错误'));
+    }
+  });
+}
+async function addEmoji(){
+  if (!window.api || !window.api.addEmoji) { setStatus('当前环境不支持添加素材'); return; }
+  const res = await window.api.addEmoji();
+  if (res && res.ok && res.added && res.added.length) {
+    emojiGrid.innerHTML = '';
+    buildEmojiPanel();
+    setStatus('已添加 ' + res.added.length + ' 个素材，可直接点击插入');
+  } else {
+    setStatus('未添加素材');
+  }
+}
+function toggleEmojiPanel(){
+  buildEmojiPanel();
+  emojiPanel.style.display = emojiPanel.style.display === 'block' ? 'none' : 'block';
+}
+function insertEmoji(src){
+  restoreRange();
+  document.execCommand('insertHTML', false, '<img src="' + src + '" class="emoji-inline" alt="贴纸">');
+  setStatus('已插入星露谷素材贴纸'); persistSoon();
+  emojiPanel.style.display = 'none';
+}
+document.addEventListener('click', e => {
+  if (emojiPanel.style.display === 'block' && !emojiPanel.contains(e.target) && !e.target.closest('.rb-btn')) {
+    emojiPanel.style.display = 'none';
+  }
+  if (paperPanel.style.display === 'block' && !paperPanel.contains(e.target) && !e.target.closest('.side-actions button')) {
+    paperPanel.style.display = 'none';
+  }
+  if (iconPanel.style.display === 'block' && !iconPanel.contains(e.target) && !e.target.closest('.book-icon')) {
+    iconPanel.style.display = 'none';
+  }
+});
+
+/* ---- 左上角标题自定义 ---- */
+let titleMain = 'MARVIS', titleSub = '星露谷笔记本';
+function renderBrand(){
+  const bm = document.getElementById('brandMain');
+  const bs = document.getElementById('brandSub');
+  if (bm) bm.textContent = titleMain;
+  if (bs) bs.textContent = titleSub ? ' ' + titleSub : '';
+  document.title = titleMain + ' 笔记本 · ' + titleSub;
+}
+function editBrand(){
+  showPrompt2('自定义左上角标题', titleMain, titleSub, (a, b) => {
+    const na = (a || '').trim(), nb = (b || '').trim();
+    if (!na && !nb) return;
+    if (na) titleMain = na;
+    if (nb) titleSub = nb;
+    renderBrand(); persistSoon(); setStatus('已更新左上角标题');
+  });
+}
+
+/* ---- 初始化：载入笔记本库 ---- */
+async function init(){
+  const api = window.api;
+  let loaded = false;
+  if (api) {
+    const r = await api.loadLibrary();
+    if (r && r.ok && r.data && r.data.books && r.data.books.length) {
+      books = r.data.books;
+      collapsedBooks = r.data.collapsed || {};
+      curBookId = r.data.curBookId && books.find(b => b.id === r.data.curBookId) ? r.data.curBookId : books[0].id;
+      const b = books.find(x => x.id === curBookId);
+      curPageId = (r.data.curPageId && b && b.pages.find(p => p.id === r.data.curPageId)) ? r.data.curPageId : (b && b.pages.length ? b.pages[0].id : null);
+      if (r.data.titleMain) titleMain = r.data.titleMain;
+      if (r.data.titleSub) titleSub = r.data.titleSub;
+      loaded = true;
+    }
+  }
+  if (!loaded) {
+    const bid = 'b' + Date.now();
+    books = [{id: bid, name: '未命名农场手账', paper: 'plain', pages: [{id: 'p1', title: '笔记 1', html: ''}]}];
+    curBookId = bid; curPageId = 'p1';
+    persistSoon();
+  }
+  renderList(); loadCur(); renderBrand();
+  setStatus('已载入星露谷笔记本库');
+}
+/* ---- 目录悬停 1.5s 显示全名 ---- */
+const nameTip = document.createElement('div');
+nameTip.id = 'nameTip';
+document.body.appendChild(nameTip);
+let tipTimer = null, tipTarget = null;
+function tipNameOf(t){
+  if (t.classList.contains('book-head')) {
+    const n = t.querySelector('.book-name');
+    return n ? n.textContent : null;
+  }
+  if (t.classList.contains('pitem')) {
+    const n = t.querySelector('span');
+    return n ? n.textContent : null;
+  }
+  return null;
+}
+function tipOverflow(t){
+  const el = t.classList.contains('book-head') ? t.querySelector('.book-name') : t.querySelector('span');
+  return !!(el && el.scrollWidth > el.clientWidth + 1);
+}
+function showNameTip(t){
+  const name = tipNameOf(t);
+  if (!name) return;
+  nameTip.textContent = name;
+  nameTip.style.display = 'block';
+  nameTip.style.left = '0px'; nameTip.style.top = '0px';
+  const r = t.getBoundingClientRect();
+  const w = nameTip.offsetWidth, h = nameTip.offsetHeight;
+  let left = r.left, top = r.bottom + 8;
+  if (top + h > innerHeight - 6) top = r.top - h - 8;
+  if (left + w > innerWidth - 6) left = innerWidth - w - 6;
+  if (left < 6) left = 6;
+  nameTip.style.left = left + 'px';
+  nameTip.style.top = top + 'px';
+}
+function hideNameTip(){
+  if (tipTimer) { clearTimeout(tipTimer); tipTimer = null; }
+  tipTarget = null;
+  nameTip.style.display = 'none';
+}
+bookListEl.addEventListener('mouseover', e => {
+  if (e.target.closest('.del')) return;
+  const t = e.target.closest('.book-head,.pitem');
+  if (!t || !tipOverflow(t)) return;
+  if (t === tipTarget) return;
+  tipTarget = t;
+  if (tipTimer) clearTimeout(tipTimer);
+  tipTimer = setTimeout(() => showNameTip(t), 1500);
+});
+bookListEl.addEventListener('mouseout', e => {
+  const t = e.target.closest('.book-head,.pitem');
+  if (!t) return;
+  if (e.relatedTarget && t.contains(e.relatedTarget)) return;
+  if (t === tipTarget) hideNameTip();
+});
+init();
+</script>
+</body>
+</html>
